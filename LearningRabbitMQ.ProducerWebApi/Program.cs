@@ -9,13 +9,16 @@ namespace LearningRabbitMQ.ProducerWebApi
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            var connectionString = builder.Configuration.GetConnectionString("Forecasts") ?? "Data Source=Db/Forecasts.db";
 
             builder.Services.AddControllers();
 
-            builder.Services.AddDbContext<ForecastDb>(options => options.UseInMemoryDatabase("forecasts"));
+            // In-Memory db
+            //builder.Services.AddDbContext<ForecastDb>(options => options.UseInMemoryDatabase("forecasts"));
+            
+            // Sqlite db
+            builder.Services.AddSqlite<ForecastDbContext>(connectionString);
 
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
@@ -34,13 +37,13 @@ namespace LearningRabbitMQ.ProducerWebApi
 
             app.MapControllers();
 
-            app.MapGet("/forecasts", async (ForecastDb db) => await db.Forecasts.ToListAsync());
+            //app.MapGet("/forecasts", async (ForecastDb db) => await db.Forecasts.ToListAsync());
 
-            app.MapPost("/forecast", async (ForecastDb db, Forecast forecast) =>
+            app.MapPost("/forecasts", async (ForecastDbContext db, Forecast forecast) =>
             {
                 await db.Forecasts.AddAsync(forecast);
                 await db.SaveChangesAsync();
-                return Results.Created($"/forecast/{forecast.Id}", forecast);
+                return Results.Created($"/forecasts/{forecast.Id}", forecast);
             });
 
             app.Run();

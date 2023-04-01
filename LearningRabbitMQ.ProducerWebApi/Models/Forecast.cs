@@ -1,9 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Runtime.Serialization;
-
-namespace LearningRabbitMQ.ProducerWebApi.Models
+﻿namespace LearningRabbitMQ.ProducerWebApi.Models
 {
+    // SQLite
     public class Forecast
     {
         public int Id { get; set; }
@@ -12,36 +9,10 @@ namespace LearningRabbitMQ.ProducerWebApi.Models
 
         public decimal Longitude { get; set; }
 
-        //public ForecastValues Values { get; set; }
+        public DateTimeOffset Day { get; set; }
 
-        //public static explicit operator Forecast(OpenMeteoForecastDto openMeteoForecastDto)
-        //{
-        //    return new Forecast
-        //    {
-        //        Latitude = openMeteoForecastDto.Latitude,
-        //        Longitude = openMeteoForecastDto.Longitude,
-        //        Values = new ForecastValues
-        //        {
-        //            Time = openMeteoForecastDto.Hourly.Time,
-        //            Temperature = openMeteoForecastDto.Hourly.Temperature
-        //        }
-        //    };
-        //}
-    }
+        public DateTimeOffset Time { get; set; }
 
-    //[DataContract]
-    //public class ForecastValues
-    //{
-    //    [NotMapped]
-    //    public DateTimeOffset[] Time { get; set; }
-
-    //    [NotMapped]
-    //    public decimal[] Temperature { get; set; }
-    //}
-
-    class ForecastDb : DbContext
-    {
-        public ForecastDb(DbContextOptions options) : base(options) { }
-        public DbSet<Forecast> Forecasts { get; set; } = null!;
+        public decimal Temperature { get; set; }
     }
 }
