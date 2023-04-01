@@ -12,12 +12,15 @@ namespace LearningRabbitMQ.ProducerWebApi.RabbitMQ
             var connection = factory.CreateConnection();
             using var channel = connection.CreateModel();
 
-            channel.QueueDeclare("orders");
+            // exclusive is set to false, otherwise it causes the below error:
+            // RabbitMQ.Client.Exceptions.OperationInterruptedException: The AMQP operation was interrupted: AMQP close-reason, initiated by Peer, code=405, text=’RESOURCE_LOCKED – cannot obtain exclusive access to locked queue in ‘orders’ vhost ‘/’.
+            // https://github.com/pardahlman/RawRabbit/issues/192
+            channel.QueueDeclare("forecasts", exclusive: false);
 
             var json = JsonConvert.SerializeObject(message);
             var body = Encoding.UTF8.GetBytes(json);
 
-            channel.BasicPublish(exchange: "", routingKey: "orders", body: body);
+            channel.BasicPublish(exchange: "", routingKey: "forecasts", body: body);
         }
     }
 }

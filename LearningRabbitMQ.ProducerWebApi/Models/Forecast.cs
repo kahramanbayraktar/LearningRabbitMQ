@@ -3,6 +3,12 @@
     // SQLite
     public class Forecast
     {
+        //public Forecast(decimal lat, decimal lon)
+        //{
+        //    Latitude = lat;
+        //    Longitude = lon;
+        //}
+
         public int Id { get; set; }
 
         public decimal Latitude { get; set; }

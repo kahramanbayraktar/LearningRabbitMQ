@@ -1,8 +1,10 @@
 ﻿using LearningRabbitMQ.ProducerWebApi.Dtos;
 using LearningRabbitMQ.ProducerWebApi.Extensions;
 using LearningRabbitMQ.ProducerWebApi.Models;
+using LearningRabbitMQ.ProducerWebApi.RabbitMQ;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualBasic;
 
 namespace LearningRabbitMQ.ProducerWebApi.Controllers
 {
@@ -11,10 +13,12 @@ namespace LearningRabbitMQ.ProducerWebApi.Controllers
     public class ForecastsController : ControllerBase
     {
         private readonly ForecastDbContext _db;
+        private readonly IMessageProducer _messageProducer;
 
-        public ForecastsController(ForecastDbContext db)
+        public ForecastsController(ForecastDbContext db, IMessageProducer messageProducer)
         {
             _db = db;
+            _messageProducer = messageProducer;
         }
 
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -55,9 +59,9 @@ namespace LearningRabbitMQ.ProducerWebApi.Controllers
                 {
                     Forecast f = new()
                     {
+                        Latitude = openMeteoForecastDto.Latitude,
+                        Longitude = openMeteoForecastDto.Longitude,
                         Day = day,
-                        Latitude = lat,
-                        Longitude = lon,
                         Time = openMeteoForecastDto.Hourly.Time[i],
                         Temperature = openMeteoForecastDto.Hourly.Temperature[i]
                     };
@@ -81,6 +85,31 @@ namespace LearningRabbitMQ.ProducerWebApi.Controllers
             }
 
             return (ForecastResponseDto)openMeteoForecastDto;
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateForecast(ForecastResponseDto forecastDto)
+        {
+            var forecasts = new List<Forecast>();
+
+            for (var i = 0; i < forecastDto.Values.Count(); i++)
+            {
+                Forecast forecast = new()
+                {
+                    Latitude = forecastDto.Latitude,
+                    Longitude = forecastDto.Longitude,
+                    Day = DateTimeOffset.Now,
+                    Time = forecastDto.Values[i].Time,
+                    Temperature = forecastDto.Values[i].Temperature
+                };
+                forecasts.Add(forecast);
+                await _db.Forecasts.AddAsync(forecast);
+            }
+            await _db.SaveChangesAsync();
+
+            _messageProducer.SendMessage(forecasts);
+
+            return Ok();
         }
     }
 }
